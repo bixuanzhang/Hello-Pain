@@ -1,0 +1,14 @@
+
+<html> 
+<head>
+<tile> Hello World </tile> //将网页命名为Hello World
+</head> 
+<body>  
+<script language="JavaScript">  
+function helloWorld(){  
+    document.write("Hello World!");  
+}  
+helloWorld(); //调用函数  
+</script>  
+</body>  
+</html>  
