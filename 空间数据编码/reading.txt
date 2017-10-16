@@ -1,0 +1,78 @@
+<html>
+<head>
+<title>空间编码</title>
+</head>
+
+<body>
+<script language="javascript>
+function isSupportFileApi() {
+    if(window.File && window.FileList && window.FileReader && window.Blob) {
+        return true;
+    }
+    return false;
+}
+
+function fileSelect1(e) {
+    var files = this.files;
+    for(var i = 0, len = files.length; i < len; i++) {
+        var f = files[i];
+        html.push(
+            '<p>',
+                f.name + '(' + (f.type || "n/a") + ')' + ' - ' + f.size + 'bytes',
+            '</p>'
+        );
+    }
+    document.getElementById('list1').innerHTML = html.join('');
+}
+document.getElementById('file1').onchange = fileSelect1;
+
+function dropHandler(e) {
+    e.stopPropagation();
+    e.preventDefault();
+
+    var files = e.dataTransfer.files;
+    for(var i = 0, len = files.length; i < len; i++) {
+        var f = files[i];
+        html.push(
+            '<p>',
+                f.name + '(' + (f.type || "n/a") + ')' + ' - ' + f.size + 'bytes',
+            '</p>'
+        );
+    }
+    document.getElementById('list2').innerHTML = html.join('');
+}
+function dragOverHandler(e) {
+    e.stopPropagation();
+    e.preventDefault();
+    e.dataTransfer.dragEffect = 'copy';
+}
+var drag = document.getElementById('drag');
+drag.addEventListener('drop', dropHandler, false);
+drag.addEventListener('dragover', dragOverHandler, false);
+
+function fileSelect3(e) {
+    e = e || window.event;
+
+    var files = this.files;
+    var p = document.getElementById('preview3');
+
+    for(var i = 0, f; f = files[i]; i++) {
+        var reader = new FileReader();
+        reader.onload = (function(file) {
+            return function(e) {
+                var div = document.createElement('div');
+                div.className = "text"
+                div.innerHTML = encodeHTML(this.result);
+
+                p.insertBefore(div, null);
+            };
+        })(f);
+        //读取文件内容
+        reader.readAsText(f);
+    }
+}
+document.getElementById('files3').addEventListener('change', fileSelect3, false);
+
+</script>
+</body>
+</html>
