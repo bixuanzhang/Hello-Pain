@@ -1,0 +1,469 @@
+
+<html>
+    <head lang="en">
+        <meta charset="UTF-8">
+        <title>show words</title>
+        <script type="text/javascript"></script>
+
+    
+    <body>               
+        <div>
+            <div >
+            <p >choose your files</p>
+            <input type="file" id="filepick">
+            <input type="button" value="show" onclick="showResult()">
+            <input type="button" value="clear" onclick="clearPaint()"><br></br> 
+              
+            <form method=post>
+                1.平移变换<br></br>
+                向x方向平移：<input type="text" name="row1">
+                向y方向平移：<input type="text" name="column1">
+                <input type="button" value="平移结果" onclick="translation(this.form)"><br></br>            
+                
+                2.比例变换<br></br>
+                缩放或拉伸比例为（尽量在3以内，否则太大无法完全显示）：<input type="text" name="row2">                
+                <input type="button" value="比例变换结果" onclick="transform(this.form)"><br></br>
+                
+                3.对称变换<br></br>
+                关于x=8对称为例：
+                <input type="button" value="对称变换结果" onclick="symmetry()"><br></br> 
+
+                4.旋转变换<br></br>
+                以顺时针旋转90°为例：
+                <input type="button" value="旋转变换结果" onclick="rotation()"><br></br> 
+
+                5.耸肩变换<br></br>
+                沿y轴方向的错切变换
+                <input type="button" value="耸肩变换结果" onclick="songJian()"><br></br> 
+
+                6.左斜变换<br></br>
+                沿x轴方向的错切变换
+                <input type="button" value="左斜变换结果" onclick="zuoXie()"><br></br> 
+
+                
+
+                </form>
+                </div>             
+            <div class="bg-right">
+                <canvas id="myCanvas" width="720px" height="720px"></canvas>
+            </div>            
+        </div>                                       
+    <script type="text/javascript">
+        function Value(x,y)
+        {
+            this.x=x;
+            this.y=y;
+        }
+        
+        function showResult() //用于读取文件并在屏幕上显示汉字
+        {   
+            
+            var file = document.getElementById("filepick").files[0];
+            var reader = new FileReader();
+            reader.readAsText(file);
+            reader.onload=function(e)
+            {   
+                var readtext=reader.result.split("\r\n");
+                //定义一个二维数组
+                var arr=new Array();
+                var N=0;
+                arr[N]=new Array();       
+                var M=0;
+
+                for(i=1;i<readtext.length-1;i++) 
+                {   
+                    
+                    if(readtext[i]=="END") //判断读取文件时是否读到“END”，如果读到，则获取下一行的内容
+                    {   
+                        M=0;
+                        N=N+1;
+                        arr[N]=new Array();
+                    }                       
+                    
+                    else
+                    {
+                        if(readtext[i].length!=1)
+                        {
+                        var x;
+                        var y;
+                        x=readtext[i].split(",")[0]; //以逗号为标志，对读取的内容进行分割
+                        y=readtext[i].split(",")[1];
+                        arr[N][M]=new Value(x,16-y);
+                        M=M+1;
+                        }
+                    }
+                }
+
+                var canvas = document.getElementById("myCanvas");
+                var context = canvas.getContext("2d");
+                context.beginPath();
+                context.strokeStyle = "green"; 
+                context.lineWidth = 3;
+                for(i=0;i<N+1;i++)
+                {
+                    for(j=0;j<arr[i].length-1;j++)
+                    {     
+                        context.moveTo((arr[i][j].x)*20,(arr[i][j].y)*20);
+                        context.lineTo((arr[i][j+1].x)*20,(arr[i][j+1].y)*20);                        
+                    }
+                }
+                context.stroke();
+                
+            }        
+        }
+
+        function clearPaint() //用于读取一个文件显示汉字后，将显示的汉字清除
+        {
+            var c=document.getElementById("myCanvas");              
+            var context=document.getElementById("myCanvas").getContext("2d");
+            context.clearRect(0,0,c.width,c.height);
+        }
+
+        function translation(form) //平移变换
+        {   
+            var x1=eval(form.row1.value);
+            var y1=eval(form.column1.value);
+
+            var file = document.getElementById("filepick").files[0];
+            var reader = new FileReader();
+            reader.readAsText(file);
+            reader.onload=function(e)
+            {   
+                var readtext=reader.result.split("\r\n");
+                //定义一个二维数组
+                var arr=new Array();
+                var N=0;
+                arr[N]=new Array();       
+                var M=0;
+
+                for(i=1;i<readtext.length-1;i++) 
+                {   
+                    
+                    if(readtext[i]=="END") //判断读取文件时是否读到“END”，如果读到，则获取下一行的内容
+                    {   
+                        M=0;
+                        N=N+1;
+                        arr[N]=new Array();
+                    }                       
+                    
+                    else
+                    {
+                        if(readtext[i].length!=1)
+                        {
+                        var x;
+                        var y;
+                        x=readtext[i].split(",")[0]; //以逗号为标志，对读取的内容进行分割
+                        y=readtext[i].split(",")[1];
+                        arr[N][M]=new Value(x,16-y);
+                        M=M+1;
+                        }
+                    }
+                }
+                
+                var canvas = document.getElementById("myCanvas");
+                var context = canvas.getContext("2d");
+                context.beginPath();
+                context.strokeStyle = "green"; 
+                context.lineWidth = 3;
+                for(i=0;i<N+1;i++)
+                {
+                    for(j=0;j<arr[i].length-1;j++)
+                    {     
+                        context.moveTo((arr[i][j].x)*20+x1*20,(arr[i][j].y)*20+y1*20);
+                        context.lineTo((arr[i][j+1].x)*20+x1*20,(arr[i][j+1].y)*20+y1*20);                        
+                    }
+                }
+                context.stroke();
+            }
+         }
+        
+        
+        function transform(form) //比例变换
+        {
+            var x2=eval(form.row2.value);
+            var file = document.getElementById("filepick").files[0];
+            var reader = new FileReader();
+            reader.readAsText(file);
+            reader.onload=function(e)
+            {   
+                var readtext=reader.result.split("\r\n");
+                //定义一个二维数组
+                var arr=new Array();
+                var N=0;
+                arr[N]=new Array();       
+                var M=0;
+
+                for(i=1;i<readtext.length-1;i++) 
+                {   
+                    
+                    if(readtext[i]=="END") //判断读取文件时是否读到“END”，如果读到，则获取下一行的内容
+                    {   
+                        M=0;
+                        N=N+1;
+                        arr[N]=new Array();
+                    }                       
+                    
+                    else
+                    {
+                        if(readtext[i].length!=1)
+                        {
+                        var x;
+                        var y;
+                        x=readtext[i].split(",")[0]; //以逗号为标志，对读取的内容进行分割
+                        y=readtext[i].split(",")[1];
+                        arr[N][M]=new Value(x,16-y);
+                        M=M+1;
+                        }
+                    }
+                }
+                
+                var canvas = document.getElementById("myCanvas");
+                var context = canvas.getContext("2d");
+                context.beginPath();
+                context.strokeStyle = "green"; 
+                context.lineWidth = 3;
+                for(i=0;i<N+1;i++)
+                {
+                    for(j=0;j<arr[i].length-1;j++)
+                    {     
+                        context.moveTo((arr[i][j].x)*20*x2,(arr[i][j].y)*20*x2);
+                        context.lineTo((arr[i][j+1].x)*20*x2,(arr[i][j+1].y)*20*x2);                        
+                    }
+                }
+                context.stroke();
+            }
+        }
+        
+        function symmetry() //对称变换
+        {
+            var file = document.getElementById("filepick").files[0];
+            var reader = new FileReader();
+            reader.readAsText(file);
+            reader.onload=function(e)
+            {   
+                var readtext=reader.result.split("\r\n");
+                //定义一个二维数组
+                var arr=new Array();
+                var N=0;
+                arr[N]=new Array();       
+                var M=0;
+
+                for(i=1;i<readtext.length-1;i++) 
+                {   
+                    
+                    if(readtext[i]=="END") //判断读取文件时是否读到“END”，如果读到，则获取下一行的内容
+                    {   
+                        M=0;
+                        N=N+1;
+                        arr[N]=new Array();
+                    }                       
+                    
+                    else
+                    {
+                        if(readtext[i].length!=1)
+                        {
+                        var x;
+                        var y;
+                        x=readtext[i].split(",")[0]; //以逗号为标志，对读取的内容进行分割
+                        y=readtext[i].split(",")[1];
+                        arr[N][M]=new Value(x,16-y);
+                        M=M+1;
+                        }
+                    }
+                }
+                
+                var canvas = document.getElementById("myCanvas");
+                var context = canvas.getContext("2d");
+                context.beginPath();
+                context.strokeStyle = "green"; 
+                context.lineWidth = 3;
+                for(i=0;i<N+1;i++)
+                {
+                    for(j=0;j<arr[i].length-1;j++)
+                    {     
+                        context.moveTo((16-arr[i][j].x)*20,(arr[i][j].y)*20);
+                        context.lineTo((16-arr[i][j+1].x)*20,(arr[i][j+1].y)*20);                        
+                    }
+                }
+                context.stroke();
+            }
+        }
+
+
+        function rotation() //旋转变换
+        {
+            var file = document.getElementById("filepick").files[0];
+            var reader = new FileReader();
+            reader.readAsText(file);
+            reader.onload=function(e)
+            {   
+                var readtext=reader.result.split("\r\n");
+                //定义一个二维数组
+                var arr=new Array();
+                var N=0;
+                arr[N]=new Array();       
+                var M=0;
+
+                for(i=1;i<readtext.length-1;i++) 
+                {   
+                    
+                    if(readtext[i]=="END") //判断读取文件时是否读到“END”，如果读到，则获取下一行的内容
+                    {   
+                        M=0;
+                        N=N+1;
+                        arr[N]=new Array();
+                    }                       
+                    
+                    else
+                    {
+                        if(readtext[i].length!=1)
+                        {
+                        var x;
+                        var y;
+                        x=readtext[i].split(",")[0]; //以逗号为标志，对读取的内容进行分割
+                        y=readtext[i].split(",")[1];
+                        arr[N][M]=new Value(x,16-y);
+                        M=M+1;
+                        }
+                    }
+                }
+                
+                var canvas = document.getElementById("myCanvas");
+                var context = canvas.getContext("2d");
+                context.beginPath();
+                context.strokeStyle = "green"; 
+                context.lineWidth = 3;
+                for(i=0;i<N+1;i++)
+                {
+                    for(j=0;j<arr[i].length-1;j++)
+                    {     
+                        context.moveTo(-(arr[i][j].y)*20+16*20,(arr[i][j].x)*20);
+                        context.lineTo(-(arr[i][j+1].y)*20+16*20,(arr[i][j+1].x)*20);
+                                                
+                    }
+                }
+                context.stroke();
+            }
+
+        }
+
+        function songJian() //耸肩变换
+        {
+            var file = document.getElementById("filepick").files[0];
+            var reader = new FileReader();
+            reader.readAsText(file);
+            reader.onload=function(e)
+            {   
+                var readtext=reader.result.split("\r\n");
+                //定义一个二维数组
+                var arr=new Array();
+                var N=0;
+                arr[N]=new Array();       
+                var M=0;
+
+                for(i=1;i<readtext.length-1;i++) 
+                {   
+                    
+                    if(readtext[i]=="END") //判断读取文件时是否读到“END”，如果读到，则获取下一行的内容
+                    {   
+                        M=0;
+                        N=N+1;
+                        arr[N]=new Array();
+                    }                       
+                    
+                    else
+                    {
+                        if(readtext[i].length!=1)
+                        {
+                        var x;
+                        var y;
+                        x=readtext[i].split(",")[0]; //以逗号为标志，对读取的内容进行分割
+                        y=readtext[i].split(",")[1];
+                        arr[N][M]=new Value(x,16-y);
+                        M=M+1;
+                        }
+                    }
+                }
+                
+                var canvas = document.getElementById("myCanvas");
+                var context = canvas.getContext("2d");
+                context.beginPath();
+                context.strokeStyle = "green"; 
+                context.lineWidth = 3;
+                for(i=0;i<N+1;i++)
+                {
+                    for(j=0;j<arr[i].length-1;j++)
+                    {     
+                        context.moveTo((arr[i][j].x)*20,(arr[i][j].y)*20-(arr[i][j].x)*Math.tan(Math.PI/12)*20+2*20);
+                        context.lineTo((arr[i][j+1].x)*20,(arr[i][j+1].y)*20-(arr[i][j+1].x)*Math.tan(Math.PI/12)*20+2*20);
+                                                
+                    }
+                }
+                context.stroke();
+        
+             }
+         }
+        
+        function zuoXie() //左斜变换
+        {
+            var file = document.getElementById("filepick").files[0];
+            var reader = new FileReader();
+            reader.readAsText(file);
+            reader.onload=function(e)
+            {   
+                var readtext=reader.result.split("\r\n");
+                //定义一个二维数组
+                var arr=new Array();
+                var N=0;
+                arr[N]=new Array();       
+                var M=0;
+
+                for(i=1;i<readtext.length-1;i++) 
+                {   
+                    
+                    if(readtext[i]=="END") //判断读取文件时是否读到“END”，如果读到，则获取下一行的内容
+                    {   
+                        M=0;
+                        N=N+1;
+                        arr[N]=new Array();
+                    }                       
+                    
+                    else
+                    {
+                        if(readtext[i].length!=1)
+                        {
+                        var x;
+                        var y;
+                        x=readtext[i].split(",")[0]; //以逗号为标志，对读取的内容进行分割
+                        y=readtext[i].split(",")[1];
+                        arr[N][M]=new Value(x,16-y);
+                        M=M+1;
+                        }
+                    }
+                }
+                
+                var canvas = document.getElementById("myCanvas");
+                var context = canvas.getContext("2d");
+                context.beginPath();
+                context.strokeStyle = "green"; 
+                context.lineWidth = 3;
+                for(i=0;i<N+1;i++)
+                {
+                    for(j=0;j<arr[i].length-1;j++)
+                    {     
+                        context.moveTo((arr[i][j].x)*20+(Math.tan(Math.PI/12)*arr[i][j].y)*20,(arr[i][j].y)*20);
+                        context.lineTo((arr[i][j+1].x)*20+(Math.tan(Math.PI/12)*arr[i][j+1].y)*20,(arr[i][j+1].y)*20);
+                                               
+                    }
+                }
+                context.stroke();        
+             }
+
+        }
+        
+
+        
+    </script>
+</head>
+</body>
+</html>
