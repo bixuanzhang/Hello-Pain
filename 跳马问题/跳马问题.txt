@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html>
+<head> 
+    <title>
+            Hello World
+    </title>
+    <link rel='stylesheets' href='/stylesheets/style.css' />
+</head>
+<body>
+<h4>跳马问题</h4>
+<table  border="1" cellpadding="10">
+<tr>
+    <th>棋盘行数m</th>
+    <th>棋盘列数n</th>
+    <th>马初始位置x坐标（行号从0开始）</th>
+    <th>马初始位置y坐标（行号从0开始）</th>
+</tr>
+<tr>
+	<td>
+		<input type="text" id="rows" value="">
+	</td>
+    <td>
+        <input type="text" id="cols" value="">
+	</td>
+	<td>
+        <input type="text" id="locx" value="">
+	</td>
+	<td>
+        <input type="text" id="locy" value="">
+	</td>
+</tr>
+<tr>
+	<td colspan="4">   
+		<button type="button" onclick="final()">计算</button>      
+    </td>
+</tr>
+<tr>
+	<td colspan="4">最终结果为：
+		<div id="r" onclick="final()"></div>
+	</td>
+</tr>
+</table>
+<script type="text/javascript">
+  var xmax;
+  var xmin=0;    //定义棋盘的行
+  var ymax;
+  var ymin=0;    //定义棋盘的列
+  var num=0;
+  var variety=0; 
+  var bond;
+
+  var trail = new Array(100000);//记录棋子的路线
+  var stack = new Array(100000);//存储路线过程的栈
+
+  function result(value)
+  {
+     this.value=value;
+  }
+  var result1= new result();     //检验是否在棋盘内
+  var result2= new result();     //检验是否为重复点
+  var result3= new result();
+  result2.value=0;
+  function points(x,y)
+  {
+    this.x=x;
+    this.y=y;
+  }    
+  var point = new points();
+  point.x=0;
+  point.y=0; //输入的棋子初始位置   
+
+  function location1 (x,y)//判断棋盘内外
+  {
+     if((x>xmax)||(x<xmin)||(y>ymax)||(y<ymin))
+     {
+       result1.value=1;//棋盘外
+     }
+     else
+     {
+       result1.value=0;//棋盘内
+     }
+  }
+
+  function track (stack,x,y)//遍历
+  {
+      var top = 0; 
+     while(stack[top]!=null){
+      if((x==stack[0].x) && (y==stack[0].y))
+    {
+       result2.value = 2; //回到起点
+       break;
+    }
+    else if((x==stack[top].x) && (y==stack[top].y))
+    {
+      result2.value =1; //重复点
+      break;
+    }
+    top++;
+  if (stack[top]==null)
+    {
+      result2.value = 0;//可走点
+    }
+   }
+  }
+
+  function instack(x,y)//入栈
+  {
+     var top =0;
+     while(stack[top]!=null){
+     top++;
+     }
+     stack[top]=new points();
+     stack[top].x=x;
+     stack[top].y=y;                
+  }
+
+  function nextstep(stack,flag)
+  {
+        switch(flag)
+        {
+                case 0:
+                location1(point.x+1,point.y+2);
+                x=point.x+1;
+                y=point.y+2;
+
+                track(stack,x,y);
+                if(result1.value==0&&result2.value==0)
+               {
+                  point.x=point.x+1;
+                  point.y=point.y+2;
+               return(0);
+               }
+               else if(result2.value == 2)  
+               {
+                point.x=point.x+1;
+                point.y=point.y+2;
+               result3.value=6;
+               return(0);
+               }
+               break;
+  
+              case 1:
+              location1(point.x+2,point.y+1);
+              x=point.x+2;
+              y=point.y+1;
+
+              track(stack,x,y);
+              if(result1.value==0&&result2.value==0)
+              {
+               point.x=point.x+2;
+               point.y=point.y+1;
+               return(0);
+              }
+              else if(result2.value == 2) 
+             {
+              point.x=point.x+2;
+              point.y=point.y+1;
+             result3.value=6;
+             return(0);
+             }
+              break;
+				
+             case 2:
+             location1(point.x+2,point.y-1);
+             x=point.x+2;
+             y=point.y-1;
+
+             track(stack,x,y);
+             if(result1.value==0&&result2.value==0)
+            {
+             point.x=point.x+2;
+             point.y=point.y-1;
+              return(0);
+            }
+            else if(result2.value == 2)  
+             {
+             point.x=point.x+2;
+             point.y=point.y-1;
+             result3.value=6;
+           return(0);
+            }
+             break;
+  
+           case 3:
+           location1(point.x+1,point.y-2);
+           x=point.x+1;
+           y=point.y-2;
+
+           track(stack,x,y);
+           if(result1.value==0&&result2.value==0)
+           {
+           point.x=point.x+1;
+           point.y=point.y-2;
+             return(0);
+            }
+           else if(result2.value == 2)
+          {
+          point.x=point.x+1;
+          point.y=point.y-2;
+          result3.value=6;
+          return(0);
+            }
+           break;
+				
+           case 4:
+           location1(point.x-1,point.y-2);
+           x=point.x-1;
+            y=point.y-2;
+
+             track(stack,x,y);
+           if(result1.value==0&&result2.value==0)
+          {
+            point.x=point.x-1;
+            point.y=point.y-2;
+            return(0);
+           }
+           else if(result2.value == 2)  
+          {
+            point.x=point.x-1;
+            point.y=point.y-2;
+          result3.value=6;
+          return(0);
+          }
+           break;
+
+            case 5:
+          location1(point.x-2,point.y-1);
+            x=point.x-2;
+           y=point.y-1;
+            track(stack,x,y);
+            if(result1.value==0&&result2.value==0)
+           {
+            point.x=point.x-2;
+            point.y=point.y-1;
+             return(0);
+             }
+             else if(result2.value == 2) 
+             {
+             point.x=point.x-2;
+             point.y=point.y-1;
+             result3.value=6;
+             return(0);
+            }
+             break;
+
+            case 
+			6:
+             location1(point.x-2,point.y+1);
+             x=point.x-2;
+             y=point.y+1;
+             track(stack,x,y);
+             if(result1.value==0&&result2.value==0)
+             {
+              point.x=point.x-2;
+              point.y=point.y+1;
+              return(0);
+             }
+            else if(result2.value == 2)  
+            {
+              point.x=point.x-2;
+              point.y=point.y+1;
+              result3.value=6;
+              return(0);
+            }
+           break;
+
+          case 7:
+           location1(point.x-1,point.y+2);
+            x=point.x-1;
+           y=point.y+2;
+            track(stack,x,y);
+           if(result1.value==0&&result2.value==0)
+           {
+           point.x=point.x-1;
+           point.y=point.y+2;
+          return(0);
+          }
+          else if(result2.value == 2)  
+         {
+          point.x=point.x-1;
+          point.y=point.y+2;
+         result3.value=6;
+         return(0);
+         }
+         break;
+     }
+  return(1);
+  } 
+  
+  function jump()
+  {
+      var a=0;
+      var b=0;
+      var x=point.x;
+      var y=point.y;
+
+      num++;
+      instack(point.x,point.y);
+    if(result3.value==6)
+    {
+      while(stack[b]!=null)
+    {
+      if(num<=bond)
+          break;          
+       document.getElementById("r").innerHTML= document.getElementById("r").innerHTML+stack[b].x+stack[b].y+"  ";
+       b++;
+    }
+    if(num>bond)
+    {
+    document.getElementById("r").innerHTML=document.getElementById("r").innerHTML+"<br\>";
+    }
+    result3.value=0;
+     variety++;
+    }
+
+    for(;a<8;a++)
+    {
+      point.x = x;
+      point.y = y;
+      if(nextstep(stack,a)==0)
+      {
+        jump(); 
+        stack[num-1]=null;
+        num--;
+      }
+    }
+
+  } 
+
+  function final()
+  {
+    xmax=document.getElementById("cols").value-1;
+    ymax=document.getElementById("rows").value-1;
+    bond=(xmax+1)*(ymax+1)-2;
+    jump();
+  }
+  </script>
+
+</body>
+</html>

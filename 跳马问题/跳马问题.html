@@ -1,0 +1,347 @@
+<html>
+  <head lang="en">
+    <meta charset="UTF-8">
+    <title>跳马</title>
+    <link href="css.css" rel="stylesheets" type="text/css"/>
+</head>
+<body>
+<h2>跳马问题</h2>
+<h3>(由于读取函数的问题，本程序只能规定初始坐标为原点（0,0）)</h3>
+<table  border="2" cellpadding="8">
+<tr>
+    <th>输入棋盘行数m</th>
+    <th>输入棋盘列数n</th>
+    <th>输入初始位置x坐标（行号从0开始）</th>
+    <th>输入初始位置y坐标（列号从0开始）</th>
+</tr>
+<tr>
+	<td>
+		<input type="text" id="rows">
+	</td>
+    <td>
+        <input type="text" id="cols">
+	</td>
+	<td>
+          <input type="text" id="locx">
+	</td>
+	<td>
+          <input type="text" id="locy">
+  </td>
+
+</tr>
+<tr>
+	<td colspan="4">   
+		<input type="button" value="计算结果" onclick="jump(this.form)">    
+    </td>
+</tr>
+<tr>
+	 <td colspan="4">最终结果为：
+		<div id="r" onclick="jump(this.form)"></div>
+  </td>
+
+</tr>
+</table>
+
+<script type="text/javascript">
+  var xmax;      //棋盘的行最大值，根据用户输入的值确定
+  var xmin=0;    //棋盘的行最小值为0
+  var ymax;      //棋盘的列最大值，根据用户输入的值确定
+  var ymin=0;    //棋盘的列最小值为0
+  var num=0;
+  var variety=0; 
+  var bond;      //边界大小
+
+  var stack = new Array(100000); //存储路线过程的栈
+
+  function flag(value)
+  {
+     this.value=value;
+  }
+
+  var flag1= new flag();     //判断点是否在棋盘内
+  var flag2= new flag();     //判断点是否为重复点
+  var flag3= new flag();
+
+  flag2.value=0;
+
+  function pointLocation(x,y)
+  {
+    this.x=x;
+    this.y=y;
+  }    
+  var point = new pointLocation();
+
+
+  point.x=0;
+  point.y=0; //获得棋子初始位置   
+
+  function InChess(x,y)  //判断点是否在棋盘内
+  {
+     if((x>xmax)||(x<xmin)||(y>ymax)||(y<ymin))
+     {
+       flag1.value=1;//棋盘外
+     }
+     else
+     {
+       flag1.value=0;//棋盘内
+     }
+  }
+
+  function search(stack,x,y)  //遍历
+  {
+      var top = 0; 
+      while(stack[top]!=null){
+      if((x==stack[0].x) && (y==stack[0].y))
+      {
+        flag2.value = 2; //回到起点
+        break;
+      }
+      else if((x==stack[top].x) && (y==stack[top].y))
+      {
+        flag2.value =1; //重复点
+        break;
+       }
+      top++;
+      if (stack[top]==null)
+       {
+         flag2.value = 0; //可继续寻找的点
+       }
+     } 
+   }
+
+  function instack(x,y) //入栈
+  {
+
+     var top =0;
+     while(stack[top]!=null){
+     top++;
+     }
+     stack[top]=new pointLocation();
+     stack[top].x=x;
+     stack[top].y=y;                
+  }
+
+  function next(stack,flag,form) //对马下一步走向的判断
+  {
+        switch(flag)
+        {
+              case 0:
+              InChess(point.x+1,point.y+2);
+              x=point.x+1;
+              y=point.y+2;
+
+              search(stack,x,y);
+              if(flag1.value==0&&flag2.value==0)
+              {
+                point.x=point.x+1;
+                point.y=point.y+2;
+                return(0);
+              }
+              else if(flag2.value == 2)  
+              {
+                point.x=point.x+1;
+                point.y=point.y+2;
+                flag3.value=1;
+                return(0);
+              }
+              break;
+  
+              case 1:
+              InChess(point.x+2,point.y+1);
+              x=point.x+2;
+              y=point.y+1;
+
+              search(stack,x,y);
+              if(flag1.value==0&&flag2.value==0)
+              {
+                point.x=point.x+2;
+                point.y=point.y+1;
+                return(0);
+              }
+              else if(flag2.value == 2) 
+              {
+                point.x=point.x+2;
+                point.y=point.y+1;
+                flag3.value=1;
+                return(0);
+              }
+              break;
+				
+             case 2:
+             InChess(point.x+2,point.y-1);
+             x=point.x+2;
+             y=point.y-1;
+
+             search(stack,x,y);
+             if(flag1.value==0&&flag2.value==0)
+             {
+              point.x=point.x+2;
+              point.y=point.y-1;
+              return(0);
+             }
+             else if(flag2.value == 2)  
+             {
+             point.x=point.x+2;
+             point.y=point.y-1;
+             flag3.value=1;
+             return(0);
+             }
+            break;
+  
+           case 3:
+           InChess(flag.x+1,point.y-2);
+           x=point.x+1;
+           y=point.y-2;
+
+           search(stack,x,y);
+           if(flag1.value==0&&flag2.value==0)
+           {
+            point.x=point.x+1;
+            point.y=point.y-2;
+             return(0);
+            }
+           else if(flag2.value == 2)
+           {
+           point.x=point.x+1;
+           point.y=point.y-2;
+           flag3.value=1;
+           return(0);
+          }
+           break;
+				
+           case 4:
+           InChess(point.x-1,point.y-2);
+           x=point.x-1;
+           y=point.y-2;
+
+           search(stack,x,y);
+          if(flag1.value==0&&flag2.value==0)
+          {
+            point.x=point.x-1;
+            point.y=point.y-2;
+            return(0);
+           }
+           else if(flag2.value == 2)  
+           {
+            point.x=point.x-1;
+            point.y=point.y-2;
+            flag3.value=1;
+            return(0);
+           }
+           break;
+
+          case 5:
+          InChess(point.x-2,point.y-1);
+          x=point.x-2;
+          y=point.y-1;
+
+          search(stack,x,y);
+          if(flag1.value==0&&flag2.value==0)
+          {
+            point.x=point.x-2;
+            point.y=point.y-1;
+            return(0);
+          }
+          else if(flag2.value == 2) 
+          {
+             point.x=point.x-2;
+             point.y=point.y-1;
+             flag3.value=1;
+             return(0);
+           }
+          break;
+
+            
+          case 6:
+          InChess(point.x-2,point.y+1);
+          x=point.x-2;
+          y=point.y+1;
+
+          search(stack,x,y);
+          if(flag1.value==0&&flag2.value==0)
+          {
+            point.x=point.x-2;
+            point.y=point.y+1;
+            return(0);
+          }
+          else if(flag2.value == 2)  
+          {
+            point.x=point.x-2;
+            point.y=point.y+1;
+            flag3.value=1;
+            return(0);
+          }
+          break;
+
+
+          case 7:
+          InChess(point.x-1,point.y+2);
+          x=point.x-1;
+          y=point.y+2;
+
+          search(stack,x,y);
+          if(flag1.value==0&&flag2.value==0)
+          {
+            point.x=point.x-1;
+            point.y=point.y+2;
+            return(0);
+           }
+          else if(flag2.value == 2)  
+          {
+            point.x=point.x-1;
+            point.y=point.y+2;
+            flag3.value=1;
+            return(0);
+          }
+          break;
+     }
+  return(1);
+  } 
+  
+  function jump() 
+  {
+
+      var b=0;
+      var x=point.x;
+      var y=point.y;
+
+      xmax=document.getElementById("cols").value-1;
+      ymax=document.getElementById("rows").value-1;
+      bond=(xmax+1)*(ymax+1)-2;
+
+      num++;
+      instack(point.x,point.y);
+    if(flag3.value==1)
+    {
+      while(stack[b]!=null)
+    {
+      if(num<=bond)
+      break;          
+      document.getElementById("r").innerHTML=document.getElementById("r").innerHTML+stack[b].x+","+stack[b].y+"  "+"→";
+      b++;
+    }
+    if(num>bond)
+    {
+      document.getElementById("r").innerHTML=document.getElementById("r").innerHTML+"<br\>";
+    }
+    flag3.value=0;
+    variety++;
+    }
+
+    for(var i=0;i<8;i++)
+    {
+      point.x = x;
+      point.y = y;
+      if(next(stack,i,form)==0)
+      {
+        jump(); 
+        stack[num-1]=null;
+        num--;
+      }
+    }
+  } 
+
+
+</script>
+</body>
+</html>
