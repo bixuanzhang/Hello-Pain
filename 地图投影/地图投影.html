@@ -1,0 +1,444 @@
+<html>
+    <head lang="en">
+        <meta charset="UTF-8">
+        <title>地图投影</title>
+        <script type="text/javascript"></script>
+    
+    <body>
+        <div>
+            <div >
+            <p >选择你要打开的文件</p>
+            <input type="file" id="filepick">
+            <input type="button" value="clear" onclick="clearPaint()"><br></br>
+            显示中国地图：<br></br>
+            1.北京54坐标<input type="button" value="show" onclick="Beijing54()"><br></br>
+            2.兰伯特投影<input type="button" value="show" onclick="Lambert_China()"><br></br>
+            3.墨卡托投影<input type="button" value="show" onclick="Mecator_China()"><br></br>
+            <br></br>
+            显示世界地图：<br></br>
+            1.WGS84<input type="button" value="show" onclick="WGS84()"><br></br>
+            2.墨卡托投影<input type="button" value="show" onclick="Mecator_World()"><br></br>
+            北京到巴黎的大圆航线：<input type="button" value="show" onclick="Circle_line()"><br></br>
+            </div>
+            <div class="bg-right">
+                <canvas id="myCanvas" width="1080px" height="1080px"></canvas>
+            </div>
+        </div>
+    
+    <script type="text/javascript">
+        //北京54坐标的基本参数
+        var a = 6378245;               //长半轴
+        var b = 6356863.01877;         //短半轴
+        var e0 = 0.006693421622966;    //第一偏心率平方
+        var e1 = 0.006738525414684;    //第二偏心率平方
+
+        //兰伯特投影的基本参数
+        var L0 = 105 * Math.PI / 180;  //原点经度
+        var B0 = 0;                    //原点纬度
+        var B1 = 20 * Math.PI / 180;   //第一标准纬线
+        var B2 = 40 * Math.PI / 180;   //第二标准纬线
+
+        //WGS84坐标系的基本参数
+        var a1 = 6378137;               //长半轴
+        var b1 = 6356752.3142;         //短半轴
+        var e01 = 0.00669437999013;    //第一偏心率平方
+        var e11 = 0.006739496742227;    //第二偏心率平方
+        
+        function Value(x,y)
+        {
+            this.x=x;
+            this.y=y;
+        }
+        
+        function Beijing54() //显示北京54坐标系下的中国地图
+        {              
+            var file = document.getElementById("filepick").files[0];
+            var reader = new FileReader();
+            reader.readAsText(file);
+            reader.onload=function(e)
+            {   
+                var readtext=reader.result.split("\r\n");
+                //定义一个二维数组
+                var arr=new Array();
+                var N=0;
+                arr[N]=new Array();       
+                var M=0;
+
+                for(i=1;i<readtext.length-1;i++) 
+                {   
+                    
+                    if(readtext[i]=="END") //判断读取文件时是否读到“END”，如果读到，则获取下一行的内容
+                    {   
+                        M=0;
+                        N=N+1;
+                        arr[N]=new Array();
+                    }                       
+                    
+                    else
+                    {
+                        if(readtext[i].length!=1&&readtext[i].length!=2&&readtext[i].length!=3)
+                        {
+                        var x;
+                        var y;
+                        x=readtext[i].split(",")[0]; //以逗号为标志，对读取的内容进行分割
+                        y=readtext[i].split(",")[1];
+                        
+                        arr[N][M]=new Value(x,y);
+                        M=M+1;
+                        }
+                    }
+                }
+
+                var canvas = document.getElementById("myCanvas");
+                var context = canvas.getContext("2d");
+                context.beginPath();
+                context.strokeStyle = "black"; 
+                context.lineWidth = 3;
+                for(i=0;i<N+1;i++)
+                {
+                    for(j=0;j<arr[i].length-1;j++)
+                    {     
+                        context.moveTo((arr[i][j].x)*8-550,(16-arr[i][j].y)*8+350);
+                        context.lineTo((arr[i][j+1].x)*8-550,(16-arr[i][j+1].y)*8+350);                        
+                    }
+                }
+                context.stroke();
+                
+            }
+        }
+
+        function Lambert_China() //转换成兰伯特投影
+        {
+            var mb1 = Math.cos(B1) / Math.sqrt(1 - e0 * Math.pow(Math.sin(B1), 2));
+            var mb2 = Math.cos(B2) / Math.sqrt(1 - e0 * Math.pow(Math.sin(B2), 2));
+            var tb1 = Math.tan(Math.PI / 4 - B1 / 2) / Math.pow(((1 - Math.sqrt(e0) * Math.sin(B1)) / (1 + Math.sqrt(e0) * Math.sin(B1))), (Math.sqrt(e0) / 2));
+            var tb2 = Math.tan(Math.PI / 4 - B2 / 2) / Math.pow(((1 - Math.sqrt(e0) * Math.sin(B2)) / (1 + Math.sqrt(e0) * Math.sin(B1))), (Math.sqrt(e0) / 2));
+            var n = Math.log(mb1 / mb2, Math.E) / Math.log(tb1 / tb2, Math.E);
+            var f = mb1 / (n * Math.pow(tb1, n));
+            var r0 = a * f;
+            var ct,r;
+
+            var file = document.getElementById("filepick").files[0];
+            var reader = new FileReader();
+            reader.readAsText(file);
+            reader.onload=function(e)
+            {   
+                var readtext=reader.result.split("\r\n");
+                //定义一个二维数组
+                var arr=new Array();
+                var N=0;
+                arr[N]=new Array();       
+                var M=0;
+
+                for(i=1;i<readtext.length-1;i++) 
+                {   
+                    
+                    if(readtext[i]=="END") //判断读取文件时是否读到“END”，如果读到，则获取下一行的内容
+                    {   
+                        M=0;
+                        N=N+1;
+                        arr[N]=new Array();
+                    }                       
+                    
+                    else
+                    {
+                        if(readtext[i].length!=1&&readtext[i].length!=2&&readtext[i].length!=3)
+                        {
+                        var x;
+                        var y;
+                        x=readtext[i].split(",")[0]; //以逗号为标志，对读取的内容进行分割
+                        y=readtext[i].split(",")[1];
+                        
+                        r = a * f * Math.pow(Math.tan(Math.PI / 4 - (y* Math.PI / 180) / 2) / Math.pow(((1 - Math.sqrt(e0) * Math.sin(y * Math.PI / 180)) / (1 + Math.sqrt(e0) * Math.sin(y * Math.PI / 180))), (Math.sqrt(e0) / 2)), n);
+                        ct = n * (x * Math.PI / 180 - L0);
+                        x = (r0 - r * Math.cos(ct));
+                        y = (r * Math.sin(ct));
+
+                        arr[N][M]=new Value(x,y);
+                        M=M+1;
+                        }
+                    }
+                }
+
+                var canvas = document.getElementById("myCanvas");
+                var context = canvas.getContext("2d");
+                context.beginPath();
+                context.strokeStyle = "blue"; 
+                context.lineWidth = 3;
+                for(i=0;i<N+1;i++)
+                {
+                    for(j=0;j<arr[i].length-1;j++)
+                    {     
+                        context.moveTo(((arr[i][j].y)/12000+300),-(arr[i][j].x)/12000+550);
+                        context.lineTo(((arr[i][j+1].y)/12000+300),-(arr[i][j+1].x)/12000+550);                         
+                    }
+                }
+                context.stroke();
+                
+            }
+        }
+
+        function Mecator_China() //转换成墨卡托投影
+        {
+            var file = document.getElementById("filepick").files[0];
+            var reader = new FileReader();
+            reader.readAsText(file);
+            reader.onload=function(e)
+            {   
+                var readtext=reader.result.split("\r\n");
+                //定义一个二维数组
+                var arr=new Array();
+                var N=0;
+                arr[N]=new Array();       
+                var M=0;
+
+                for(i=1;i<readtext.length-1;i++) 
+                {   
+                    
+                    if(readtext[i]=="END") //判断读取文件时是否读到“END”，如果读到，则获取下一行的内容
+                    {   
+                        M=0;
+                        N=N+1;
+                        arr[N]=new Array();
+                    }                       
+                    
+                    else
+                    {
+                        if(readtext[i].length!=1&&readtext[i].length!=2&&readtext[i].length!=3)
+                        {
+                        var x;
+                        var y;
+                        x=readtext[i].split(",")[0]; //以逗号为标志，对读取的内容进行分割
+                        y=readtext[i].split(",")[1];
+                        temp=x;
+
+                        x=(((Math.pow(a, 2) / b) / Math.sqrt(1 + e1)) * Math.log((Math.tan(Math.PI / 4 + (y * Math.PI / 180) / 2)) * Math.pow(((1 - Math.sqrt(e0) * Math.sin(y * Math.PI / 180)) / (1 + Math.sqrt(e0) * Math.sin(y* Math.PI / 180))), (Math.sqrt(e0) / 2)), Math.E));
+                        y=(((Math.pow(a, 2) / b) / Math.sqrt(1 + e1)) * ((temp * Math.PI / 180) - L0));
+
+                        arr[N][M]=new Value(x,y);
+                        M=M+1;
+                        }
+                    }
+                }
+
+                var canvas = document.getElementById("myCanvas");
+                var context = canvas.getContext("2d");
+                context.beginPath();
+                context.strokeStyle = "green"; 
+                context.lineWidth = 3;
+                for(i=0;i<N+1;i++)
+                {
+                    for(j=0;j<arr[i].length-1;j++)
+                    {     
+                        context.moveTo(((arr[i][j].y)/15000+300),-(arr[i][j].x)/15000+500);
+                        context.lineTo(((arr[i][j+1].y)/15000+300),-(arr[i][j+1].x)/15000+500);                        
+                    }
+                }
+                context.stroke();
+                
+            }
+
+        }
+
+        function WGS84() //显示WGS84坐标系下的世界地图
+        {
+            var file = document.getElementById("filepick").files[0];
+            var reader = new FileReader();
+            reader.readAsText(file);
+            reader.onload=function(e)
+            {   
+                var readtext=reader.result.split("\r\n");
+                //定义一个二维数组
+                var arr=new Array();
+                var N=0;
+                arr[N]=new Array();       
+                var M=0;
+
+                for(i=1;i<readtext.length-1;i++) 
+                {   
+                    
+                    if(readtext[i]=="END") //判断读取文件时是否读到“END”，如果读到，则获取下一行的内容
+                    {   
+                        M=0;
+                        N=N+1;
+                        arr[N]=new Array();
+                    }                       
+                    
+                    else
+                    {
+                        if(readtext[i].length!=1&&readtext[i].length!=2&&readtext[i].length!=3&&readtext[i].length!=4)
+                        {
+                        var x;
+                        var y;
+                        x=readtext[i].split(",")[0]; //以逗号为标志，对读取的内容进行分割
+                        y=readtext[i].split(",")[1];
+                        
+                        arr[N][M]=new Value(x,y);
+                        M=M+1;
+                        }
+                    }
+                }
+
+                var canvas = document.getElementById("myCanvas");
+                var context = canvas.getContext("2d");
+                context.beginPath();
+                context.strokeStyle = "black"; 
+                context.lineWidth = 3;
+                for(i=0;i<N+1;i++)
+                {
+                    for(j=0;j<arr[i].length-1;j++)
+                    {     
+                        context.moveTo((arr[i][j].x)*3+550,(-arr[i][j].y)*3+300);
+                        context.lineTo((arr[i][j+1].x)*3+550,(-arr[i][j+1].y)*3+300);                        
+                    }
+                }
+                context.stroke();
+                
+            }
+        }
+
+        function Mecator_World() //转换成墨卡托投影
+        {
+            var file = document.getElementById("filepick").files[0];
+            var reader = new FileReader();
+            reader.readAsText(file);
+            reader.onload=function(e)
+            {   
+                var readtext=reader.result.split("\r\n");
+                //定义一个二维数组
+                var arr=new Array();
+                var N=0;
+                arr[N]=new Array();       
+                var M=0;
+
+                for(i=1;i<readtext.length-1;i++) 
+                {   
+                    
+                    if(readtext[i]=="END") //判断读取文件时是否读到“END”，如果读到，则获取下一行的内容
+                    {   
+                        M=0;
+                        N=N+1;
+                        arr[N]=new Array();
+                    }                       
+                    
+                    else
+                    {
+                        if(readtext[i].length!=1&&readtext[i].length!=2&&readtext[i].length!=3&&readtext[i].length!=4)
+                        {
+                        var x;
+                        var y;
+                        x=readtext[i].split(",")[0]; //以逗号为标志，对读取的内容进行分割
+                        y=readtext[i].split(",")[1];
+                        
+                        var temp=x;
+                        x = (((Math.pow(a1, 2) / b1) / Math.sqrt(1 + e11)) * Math.log((Math.tan(Math.PI / 4 + (y * Math.PI / 180) / 2)) * Math.pow(((1 - Math.sqrt(e01) * Math.sin(y * Math.PI / 180)) / (1 + Math.sqrt(e01) * Math.sin(y * Math.PI / 180))), (Math.sqrt(e01) / 2)), Math.E));
+                        y = (((Math.pow(a1, 2) / b1) / Math.sqrt(1 + e11)) * ((temp * Math.PI / 180) - 0));
+
+                        arr[N][M]=new Value(x,y);
+                        M=M+1;
+                        }
+                    }
+                }
+
+                var canvas = document.getElementById("myCanvas");
+                var context = canvas.getContext("2d");
+                context.beginPath();
+                context.strokeStyle = "purple"; 
+                context.lineWidth = 3;
+                for(i=0;i<N+1;i++)
+                {
+                    for(j=0;j<arr[i].length-1;j++)
+                    {     
+                        context.moveTo(((arr[i][j].y)/50000+400),-(arr[i][j].x)/50000+400);
+                        context.lineTo(((arr[i][j+1].y)/50000+400),-(arr[i][j+1].x)/50000+400);                        
+                    }
+                }
+                context.stroke();
+                
+            }
+
+        }
+
+        function Circle_line() //计算大圆航线
+        {
+            //巴黎坐标
+            var LO1 = 2.35222222 ;//经度
+            var LA1 = 48.85661389 ;//纬度
+            //北京坐标
+            var LO2 = 116.40966670;//经度
+            var LA2 = 39.90690556;//纬度
+
+            //设大圆航线上的点数为1000个
+            var number=1000;
+
+            var tanLA1 = Math.tan(LA1 / 180 * Math.PI);
+            var tanLA2 = Math.tan(LA2 / 180 * Math.PI);
+            var sinLO1 = Math.sin(LO1 / 180 * Math.PI);
+            var sinLO2 = Math.sin(LO2 / 180 * Math.PI);
+            var cosLO1 = Math.cos(LO1 / 180 * Math.PI);
+            var cosLO2 = Math.cos(LO2 / 180 * Math.PI);
+
+            //求取新极点
+            var LOQ = Math.atan(-(tanLA2 * cosLO1 - tanLA1 * cosLO2) / (tanLA2 * sinLO1 - tanLA1 * sinLO2)) * 180 / Math.PI; //经度
+            var LAQ = -Math.atan(Math.cos((LO1 - LOQ) / 180 * Math.PI) / tanLA1) * 180 / Math.PI; //纬度
+
+            //求航迹点
+            var longtitude = LO2 - LO1;//北京与巴黎的经差
+            var lx = longtitude / number;//航迹点间的经差
+
+            //北京到新极点的距离平方
+            var dd = Math.pow((LOQ - LO2 ), 2) + Math.pow((LAQ - LA2 ), 2);
+
+            //定义一个二维数组
+            var points=new Array();
+                var N=0;
+                points[N]=new Array();       
+                var M=0;
+
+            for (var i = 0; i < number;i++ )
+            {                       
+                var x,y; 
+
+                //航迹点的经度         
+                x = LO2  - i * lx;
+                var temp = x;
+                
+                //航迹点的纬度
+                y = Math.sqrt(dd - Math.pow((LOQ - temp), 2)) + LAQ;
+
+                //进行墨卡托投影转
+                x = (((Math.pow(a1, 2) / b1) / Math.sqrt(1 + e11)) * Math.log((Math.tan(Math.PI / 4 + (y * Math.PI / 180) / 2)) * Math.pow(((1 - Math.sqrt(e01) * Math.sin(y * Math.PI / 180)) / (1 + Math.sqrt(e01) * Math.sin(y * Math.PI / 180))), (Math.sqrt(e01) / 2)), Math.E));
+                y = (((Math.pow(a1, 2) / b1) / Math.sqrt(1 + e11)) * ((temp * Math.PI / 180) - 0));
+
+                points[N][M]=new Value(x,y);
+                M=M+1;                       
+            }
+
+            var canvas = document.getElementById("myCanvas");
+            var context = canvas.getContext("2d");
+            context.beginPath();
+            context.strokeStyle = "black"; 
+            context.lineWidth = 3;
+            for(i=0;i<N+1;i++)
+            {
+                for(j=0;j<points[i].length-1;j++)
+                {     
+                    context.moveTo(((points[i][j].y)/50000+400),-(points[i][j].x)/50000+400);
+                    context.lineTo(((points[i][j+1].y)/50000+400),-(points[i][j+1].x)/50000+400);                        
+                }
+            }
+            context.stroke();
+        
+        }
+
+        function clearPaint() //用于读取一个文件显示汉字后，将显示的汉字清除
+        {
+            var c=document.getElementById("myCanvas");              
+            var context=document.getElementById("myCanvas").getContext("2d");
+            context.clearRect(0,0,c.width,c.height);
+        }
+        
+    </script>
+</head>
+</body>
+</html>
