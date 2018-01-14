@@ -1,0 +1,202 @@
+<html>
+    <head lang="en">
+        <meta charset="UTF-8">
+        <title>地图符号</title>
+        <script type="text/javascript"></script>
+
+    <body>
+        <div>
+            <div >
+            <p >选择你要打开的文件</p>
+            <input type="file" id="filepick"><br></br>
+            显示地图符号填充后的数据：(运算有点慢，请耐心等待)
+            <input type="button" value="show" onclick="building()">
+            <input type="button" value="clear" onclick="clearPaint()"><br></br>
+        </div>
+        <div class="bg-right">
+            <canvas id="myCanvas" width="1080px" height="1080px"></canvas>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+    function Value(x,y)
+    {
+        this.x=x;
+        this.y=y;
+    }
+
+    function building()
+    {
+        var file = document.getElementById("filepick").files[0];
+        var reader = new FileReader();
+        reader.readAsText(file);
+        reader.onload=function(e)
+        {   
+            var readtext=reader.result.split("\r\n");
+            //定义一个二维数组
+            var arr=new Array();
+            var N=0;
+            arr[N]=new Array();       
+            var M=0;
+
+            var array_x=new Array();
+            var array_y=new Array();
+            array_x[N]=new Array();
+            array_y[N]=new Array();
+
+            for(i=1;i<readtext.length-1;i++) 
+            {   
+                
+                if(readtext[i]=="END") //判断读取文件时是否读到“END”，如果读到，则获取下一行的内容
+                {   
+                    M=0;
+                    N=N+1;
+                    arr[N]=new Array();
+                    array_x[N]=new Array();
+                    array_y[N]=new Array();
+                }                       
+                
+                else
+                {
+                    if(readtext[i].length!=1&&readtext[i].length!=2&&readtext[i].length!=3)
+                    {
+                    var x;
+                    var y;
+                    x=readtext[i].split(",")[0]; //以逗号为标志，对读取的内容进行分割
+                    y=readtext[i].split(",")[1];
+                    
+                    array_x[N][M]=x*2-860000+50;
+                    array_y[N][M]=(-y)*2+6521300;
+
+                    arr[N][M]=new Value(x,y);
+                    M=M+1;
+                    }
+                }
+            }
+
+            var canvas = document.getElementById("myCanvas");
+            var context = canvas.getContext("2d");
+            context.beginPath();
+            context.strokeStyle = "black"; 
+            context.lineWidth = 3;
+            for(i=0;i<N+1;i++)
+            {
+                for(j=0;j<arr[i].length-1;j++)
+                {     
+                    context.moveTo((arr[i][j].x)*2-860000+50,(-arr[i][j].y)*2+6521300);
+                    context.lineTo((arr[i][j+1].x)*2-860000+50,(-arr[i][j+1].y)*2+6521300); 
+                  
+                }
+            }
+            context.stroke();
+
+            var xmin=new Array(); //存放x,y的最大最小值
+            var xmax=new Array();
+            var ymin=new Array();
+            var ymax=new Array();
+            
+
+            //求取x,y的最大最小值
+            
+            for(var i=0;i<481;i++)
+            {
+                    xmin[i]=Math.min.apply(null,array_x[i]);
+                    xmax[i]=Math.max.apply(null,array_x[i]);
+                    ymin[i]=Math.min.apply(null,array_y[i]);
+                    ymax[i]=Math.max.apply(null,array_y[i]);
+               
+            }
+
+
+            //求取外接矩形
+            var long=new Array();  //外接矩形的长
+            var width=new Array(); //外接矩形的宽
+
+            for(i=0;i<481;i++)
+            {
+                width[i]=xmax[i]-xmin[i];
+                long[i]=ymax[i]-ymin[i];
+            }
+
+            var nline=new Array(); //记录绘制的线
+            for(i=0;i<481;i++)
+            {
+                nline[i]=Math.ceil((width[i]+long[i])/10); //相隔10个长度画一条线
+            }
+
+
+            var canvas = document.getElementById("myCanvas");
+            var context = canvas.getContext("2d");
+
+            context.beginPath();
+            context.strokeStyle = "green"; 
+            context.lineWidth = 2;
+            var npoints; //记录一个图像每条线交点的个数，算完一条线清零一次
+
+            for(var i=1;i<481;i++)
+            {
+                var x_npoints=new Array();
+                var y_npoints=new Array();
+                for(var i2=0;i2<nline[i]+1;i2++)
+                {
+                    npoints=0;
+                    for(j=0;j<481;j++)
+                    {
+                        var x1=xmin[i]+10*i2;//要被截取的填充斜线
+                        var y1=ymin[i];
+                        var x2=xmin[i];
+                        var y2=ymin[i]+10*i2;
+                
+                        var x3=array_x[i][j];//某一个图形上的线段
+                        var y3=array_y[i][j];
+                        var x4=array_x[i][j+1];
+                        var y4=array_y[i][j+1];
+    
+                        var fenmu = (y2 - y1)*(x4 - x3) - (x1 - x2)*(y3 - y4); //算交点xy
+                        var x = ( (x2 - x1) * (x4 - x3) * (y3 - y1) + (y2 - y1) * (x4 - x3) * x1 - (y4 - y3) * (x2 - x1) * x3 ) / fenmu ; 
+                        var y = -( (y2 - y1) * (y4 - y3) * (x3 - x1) + (x2 - x1) * (y4 - y3) * y1 - (x4 - x3) * (y2 - y1) * y3 ) / fenmu;  
+                        
+                        //判断交点是否在两条线段上，如果是才保留，存入交点数组
+                        if ((x - x1) * (x - x2) <= 0 && (y - y1) * (y - y2) <= 0 && (x - x3) * (x - x4) <= 0 && (y - y3) * (y - y4) <= 0  )
+    
+                        // 交点在线段1上 且交点也在线段2上 
+                           {
+                           x_npoints[npoints]=x;
+                           y_npoints[npoints]=y;
+                           npoints++;
+                           } 
+                    }
+    
+                    for(var np=0;np<npoints;np++) //在存完一条线和图形所有的交点后画线
+                    {
+                       if((np+2)%2==0)
+                        {
+                           context.moveTo(x_npoints[np],y_npoints[np]);
+                           context.lineTo(x_npoints[np+1],y_npoints[np+1]);   
+                        }
+                    
+                    }
+                    context.stroke();
+    
+                }
+
+            }
+
+
+
+                
+        }  
+    }
+
+    function clearPaint() //用于读取一个文件显示汉字后，将显示的汉字清除
+    {
+        var c=document.getElementById("myCanvas");              
+        var context=document.getElementById("myCanvas").getContext("2d");
+        context.clearRect(0,0,c.width,c.height);
+    }
+
+
+</script>
+</head>
+</body>
+</html>

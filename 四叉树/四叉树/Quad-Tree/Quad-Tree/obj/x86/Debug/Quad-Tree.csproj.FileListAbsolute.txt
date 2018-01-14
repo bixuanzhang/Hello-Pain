@@ -1,0 +1,8 @@
+C:\Users\bixuan\Desktop\四叉树\Quad-Tree\Quad-Tree\Quad-Tree\bin\Debug\Quad-Tree.exe
+C:\Users\bixuan\Desktop\四叉树\Quad-Tree\Quad-Tree\Quad-Tree\bin\Debug\Quad-Tree.pdb
+C:\Users\bixuan\Desktop\四叉树\Quad-Tree\Quad-Tree\Quad-Tree\obj\x86\Debug\Quad-Tree.csprojResolveAssemblyReference.cache
+C:\Users\bixuan\Desktop\四叉树\Quad-Tree\Quad-Tree\Quad-Tree\obj\x86\Debug\Quad_Tree.Form1.resources
+C:\Users\bixuan\Desktop\四叉树\Quad-Tree\Quad-Tree\Quad-Tree\obj\x86\Debug\Quad_Tree.Properties.Resources.resources
+C:\Users\bixuan\Desktop\四叉树\Quad-Tree\Quad-Tree\Quad-Tree\obj\x86\Debug\Quad-Tree.csproj.GenerateResource.Cache
+C:\Users\bixuan\Desktop\四叉树\Quad-Tree\Quad-Tree\Quad-Tree\obj\x86\Debug\Quad-Tree.exe
+C:\Users\bixuan\Desktop\四叉树\Quad-Tree\Quad-Tree\Quad-Tree\obj\x86\Debug\Quad-Tree.pdb

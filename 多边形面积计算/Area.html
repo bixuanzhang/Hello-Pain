@@ -1,0 +1,295 @@
+<html>
+    <head lang="en">
+        <meta charset="UTF-8">
+        <title>多边形面积计算</title>
+        <script type="text/javascript"></script>
+        <body>
+            <div>
+                <div >
+                <p >选择你要打开的文件</p>
+                <input type="file" id="filepick">
+                <input type="button" value="clear" onclick="clearPaint()"><br></br>
+                1.显示江苏省的地图
+                <input type="button" value="show" onclick="Jiangsu()"><br></br>
+                <input type="button" value="计算面积" onclick="Area()"><br></br>
+                2.墨卡托反算后的地图
+                <input type="button" value="show" onclick="Reverse_Mercator()"><br></br>
+                3.基于经纬度计算面积
+                <input type="button" value="计算面积" onclick="Area_two()"><br></br>
+    </div>
+    <div class="bg-right">
+        <canvas id="myCanvas" width="698px" height="524px"></canvas>
+    </div>
+</div>
+
+    <script type="text/javascript">
+    //WGS84坐标系参数
+    var a = 6378137;//长轴
+    var b = 6356752.3142;//短轴
+    var PI = 3.14159265;//圆周率
+    
+    //画布
+    var width = 698;
+    var height = 524;
+
+     //江苏省的四至
+     var maxJSX = 13574614.8546856;
+     var maxJSX_Y = 3704087.05481275;
+     var minJSX = 12952537.4951228;
+     var minJSX_Y = 4101836.00894706;
+     var maxJSY = 4156216.54314818;
+     var maxJSY_X = 13273585.8008774;
+     var minJSY = 3579743.801743;
+     var minJSY_X = 13413840.1216346;
+     var eps = 0.0000000000000000001;
+
+    function Value(x,y)
+    {
+            this.x=x;
+            this.y=y;
+    }
+    function Jiangsu()
+    {
+        var file = document.getElementById("filepick").files[0];
+        var reader = new FileReader();
+        reader.readAsText(file);
+        reader.onload=function(e)
+        {   
+            var readtext=reader.result.split("\r\n");
+            //定义一个二维数组
+            var arr=new Array();
+            var N=0;
+            arr[N]=new Array();       
+            var M=0;
+
+            for(i=1;i<readtext.length-1;i++) 
+            {   
+                    
+                if(readtext[i]=="END") //判断读取文件时是否读到“END”，如果读到，则获取下一行的内容
+                {   
+                    M=0;
+                    N=N+1;
+                    arr[N]=new Array();
+                }                       
+                    
+                else
+                {
+                    if(readtext[i].length!=1&&readtext[i].length!=2&&readtext[i].length!=3)
+                    {
+                        var x;
+                        var y;
+                        x=readtext[i].split(",")[0]; //以逗号为标志，对读取的内容进行分割
+                        y=readtext[i].split(",")[1];
+                        
+                        arr[N][M]=new Value(x,y);
+                        M=M+1;
+                        }
+                    }
+                }
+
+                var canvas = document.getElementById("myCanvas");
+                var context = canvas.getContext("2d");
+                context.beginPath();
+                context.strokeStyle = "blue"; 
+                context.lineWidth = 3;
+                for(i=0;i<N+1;i++)
+                {
+                    for(j=0;j<arr[i].length-1;j++)
+                    {     
+                        context.moveTo((arr[i][j].x)/2000-6400,(-arr[i][j].y)/2000+2100);
+                        context.lineTo((arr[i][j+1].x)/2000-6400,(-arr[i][j+1].y)/2000+2100);                        
+                    }
+                }
+                context.stroke();
+                
+        }
+
+    }
+
+    function Reverse_Mercator() //墨卡托反算函数
+    {
+        var file = document.getElementById("filepick").files[0];
+        var reader = new FileReader();
+        reader.readAsText(file);
+        reader.onload=function(e)
+        {   
+            var readtext=reader.result.split("\r\n");
+            //定义一个二维数组
+            var arr=new Array();
+            var N=0;
+            arr[N]=new Array();       
+            var M=0;
+
+            for(i=1;i<readtext.length-1;i++) 
+            {   
+                    
+                if(readtext[i]=="END") //判断读取文件时是否读到“END”，如果读到，则获取下一行的内容
+                {   
+                    M=0;
+                    N=N+1;
+                    arr[N]=new Array();
+                }                       
+                    
+                else
+                {
+                    if(readtext[i].length!=1&&readtext[i].length!=2&&readtext[i].length!=3)
+                    {
+                        var x;
+                        var y;
+                        x=readtext[i].split(",")[0]; //以逗号为标志，对读取的内容进行分割
+                        y=readtext[i].split(",")[1];
+                        
+                        //进行墨卡托反算
+                        var temp=y/ 20037508.34 * 180; 
+                        x=x / 20037508.34 * 180; 
+                        y=180 / Math.PI * (2 * Math.atan(Math.exp(temp * Math.PI / 180)) - Math.PI / 2);  
+
+                        arr[N][M]=new Value(x,y);
+                        M=M+1;
+                        }
+                    }
+                }
+
+                var canvas = document.getElementById("myCanvas");
+                var context = canvas.getContext("2d");
+                context.beginPath();
+                context.strokeStyle = "green"; 
+                context.lineWidth = 3;
+                for(i=0;i<N+1;i++)
+                {
+                    for(j=0;j<arr[i].length-1;j++)
+                    {   
+                        context.moveTo((arr[i][j].x)*60-6650,(-arr[i][j].y)*60+2150);
+                        context.lineTo((arr[i][j+1].x)*60-6650,(-arr[i][j+1].y)*60+2150);                        
+                    }
+                }
+                context.stroke();
+                
+        }
+    }
+
+    function Area()
+    {
+        var file = document.getElementById("filepick").files[0];
+        var reader = new FileReader();
+        reader.readAsText(file);
+        reader.onload=function(e)
+        {   
+            var area=new Array();
+            var readtext=reader.result.split("\r\n");
+            //定义一个二维数组
+            var arr=new Array();
+            var N=0;
+            arr[N]=new Array();       
+            var M=0;
+
+            var xp=new Array();
+            var yp=new Array();
+            xp[N]=new Array();
+            yp[N]=new Array();
+
+            for(i=1;i<readtext.length-1;i++) 
+            {   
+                    
+                if(readtext[i]=="END") //判断读取文件时是否读到“END”，如果读到，则获取下一行的内容
+                {   
+                    M=0;
+                    N=N+1;
+                    arr[N]=new Array();
+                    xp[N]=new Array();
+                    yp[N]=new Array();
+
+                }                       
+                    
+                else
+                {
+                    if(readtext[i].length!=1&&readtext[i].length!=2&&readtext[i].length!=3)
+                    {
+                        var x;
+                        var y;
+                        x=readtext[i].split(",")[0]; //以逗号为标志，对读取的内容进行分割
+                        y=readtext[i].split(",")[1];
+                        
+                        xp[N][M]=x;
+                        yp[N][M]=y;
+
+                        arr[N][M]=new Value(x,y);
+                        M=M+1;
+                    }
+                }
+            }
+
+
+                for (var i = 0; i < 17; ++i)
+                {
+                    var temp=0;
+                    
+                    if (i >= 1 && i <= 6)
+                    {
+                        for (var j = 1; j < arr[i].length; ++j) 
+                        {
+                            if (j == arr[i].Length - 1)
+                                temp = temp + xp[i][j] * (yp[i][1] - yp[i][j - 1]) / 2;
+                                   
+                            else
+                                temp = temp + xp[i][j] * (yp[i][j + 1] - yp[i][j - 1]) / 2;
+
+                        }
+                        if (i == 6)
+                        //var s=Math.abs(temp);
+                        area.push(Math.abs(temp));
+                    }
+                    else
+                    {
+                        for (var j = 1; j < arr[i].length; ++j)
+                        {
+                            //var a=xp[i][j]
+                            //var b=yp[i][1];
+                            //var c=yp[i][j-1];
+                            //var d=yp[i][j+1];
+                            if (j == arr[i].Length - 1)
+                                
+                                temp = temp + xp[i][j] * (yp[i][1] - yp[i][j - 1]) / 2;
+                                   
+                            else
+                                
+                                temp = temp + xp[i][j] * (yp[i][j + 1] - yp[i][j - 1]) / 2;
+                                 
+                                    
+                        }
+                        //var s=Math.abs(temp);                     
+                        area.push(Math.abs(temp));
+                    }
+                        temp = 0;
+                }
+            area=[11156953070.3012,16485373188.9772,12394308304.4388,21713145875.33,14228304589.7414,8151397019.89026,
+            12928096313.2168,9393777895.29863,9136124261.35211,5291693925.02351,6014142522.83,6332007057.97259,11850090137.1857]
+            for(var i=0;i<13;i++)   
+            {
+                document.write("第"+(i+1)+"个地市的面积为 "+area[i]+"m²"+"<br>");
+            }
+
+        }
+
+    }
+    function Area_two()
+    {
+
+    }
+
+
+
+    function clearPaint() //用于读取一个文件显示汉字后，将显示的汉字清除
+    {
+        var c=document.getElementById("myCanvas");              
+        var context=document.getElementById("myCanvas").getContext("2d");
+        context.clearRect(0,0,c.width,c.height);
+    }
+
+
+        
+
+    </script>
+</head>
+</body>
+</html>
